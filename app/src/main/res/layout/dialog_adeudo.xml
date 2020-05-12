@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/ly_adeudado"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="10dp"
+    app:elevation="4dp">
+
+    <LinearLayout
+        android:layout_width="@dimen/_270sdp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/spacing_large">
+
+            <ImageView
+                android:layout_width="@dimen/_60sdp"
+                android:layout_height="@dimen/_60sdp"
+                android:src="@drawable/ic_error_outline"
+                android:tint="@color/blue_700" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="@dimen/spacing_large"
+                android:layout_marginEnd="@dimen/spacing_large"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <TextView
+                    android:textSize="@dimen/_12sdp"
+                    android:id="@+id/txt_adeudado_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="*****"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"/>
+
+
+                <TextView
+                    android:id="@+id/txt_adeudado_msg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="****"
+                    android:textSize="@dimen/_10sdp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ly_condicion_especial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|end"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_medium">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@color/grey_500" />
+
+            <LinearLayout
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:gravity="end"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+                <Button
+                    android:textSize="@dimen/_10sdp"
+                    android:id="@+id/dg_adeudo_close"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/spacing_large"
+                    android:text="Regresar"
+                    android:textColor="@color/red_500" />
+
+                <Button
+                    android:textSize="@dimen/_10sdp"
+                    android:id="@+id/btn_adeudado_condspe"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ver mi credencial"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

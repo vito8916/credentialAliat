@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Mi Credencial</string>
+    <string name="tomar_foto">Tomar foto</string>
+    <string name="crear_credencial">Crear credencial</string>
+    <string name="my_credential">My Credential</string>
+    <string name="place_holder_text">**********</string>
+
+    <string name="grant_permission">Grant Permission</string>
+    <string name="title_permission_required">Permission Required</string>
+    <string name="face_preview">Face Preview</string>
+    <string name="error_faild_cropping">Failed cropping the face 😕</string>
+    <string name="error_permission_not_granted">To detect faces, the app needs permission to access your phone camera.</string>
+    <string name="getdatalocalmsgsnk">Obteniendo data localmente</string>
+    <string name="getdatawebmsgsnk">Solicitando información</string>
+    <string name="sendPhotoToServerMsg">Enviando información</string>
+    <string name="noPhotoExistText">Aún no tienes una fotografía</string>
+    <string name="startByTakinPhotoText">Empieza tomandote una foto. Preciona el siguiente botón</string>
+    <string name="openCameraText">ABRIR LA CÁMARA</string>
+    <string name="takeAnotherPhotoText">TOMAR OTRA FOTO</string>
+    <string name="uploadPhotoText">Subir foto</string>
+    <string name="disclaimerText">Esta foto será enviada a nuestros servidores para ser utilizada en tu credencial</string>
+    <string name="noInternetConectionText">Por favor revisa tu conexión a internet e intententalo de nuevo. \n \n El servicio se reestablecerá automáticamente.</string>
+    <string name="retryText">Reintentar</string>
+    <string name="somthingwrongText">Algo no salió bien.</string>
+    <string name="retryChargeCred">Reintentando cargar credencial</string>
+    <string name="closeText">Cerrar</string>
+    <string name="no_internet">¡No tienes internet!</string>
+
+</resources>

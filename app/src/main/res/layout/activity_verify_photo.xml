@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".VerifyPhotoActivity">
+
+    <include
+        android:visibility="gone"
+        android:id="@+id/no_internet_ly"
+        layout="@layout/activity_no_item_internet_icon" />
+
+
+    <!-- TODO: Update blank fragment layout -->
+    <!--NOT PHOTO CONTAINER-->
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:visibility="gone"
+        android:id="@+id/ly_not_photo_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="@dimen/spacing_large"
+            android:gravity="center"
+            android:background="@android:color/white"
+            android:orientation="vertical">
+            <androidx.cardview.widget.CardView
+                android:layout_width="@dimen/_105sdp"
+                android:layout_height="@dimen/_140sdp"
+                android:layout_marginLeft="@dimen/spacing_large"
+                android:layout_marginTop="@dimen/spacing_middle"
+                android:layout_marginRight="@dimen/spacing_large"
+                android:layout_marginBottom="@dimen/spacing_middle"
+                app:cardCornerRadius="4dp"
+                app:cardElevation="1dp">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_generic_avatar"/>
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="@string/noPhotoExistText"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+                android:textColor="@color/blue_grey_700" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:padding="@dimen/spacing_small"
+                android:text="@string/startByTakinPhotoText"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                android:textColor="@color/blue_grey_700" />
+
+        </LinearLayout>
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/open_camera"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="25dp"
+            android:layout_marginBottom="25dp"
+            android:layout_marginStart="25dp"
+            android:layout_marginEnd="25dp"
+            android:padding="15dp"
+            android:text="@string/openCameraText"
+            android:textAlignment="center"
+            android:textColor="@android:color/white"
+            app:icon="@drawable/ic_photo_camera"
+            app:iconTint="@android:color/white"
+            app:backgroundTint="@color/colorPrimary"
+            android:layout_gravity="bottom"
+            />
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <!--PHOTO CONTAINER-->
+    <LinearLayout
+        android:visibility="gone"
+        android:id="@+id/ly_photo_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="@dimen/spacing_large"
+        android:gravity="center"
+        android:background="@android:color/white"
+        android:orientation="vertical">
+        <androidx.cardview.widget.CardView
+            android:layout_width="@dimen/_105sdp"
+            android:layout_height="@dimen/_140sdp"
+            android:layout_marginLeft="@dimen/spacing_large"
+            android:layout_marginTop="@dimen/spacing_middle"
+            android:layout_marginRight="@dimen/spacing_large"
+            android:layout_marginBottom="@dimen/spacing_middle"
+            app:cardCornerRadius="4dp"
+            app:cardElevation="1dp">
+            <ImageView
+                android:id="@+id/img_verify"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_generic_avatar"/>
+        </androidx.cardview.widget.CardView>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="¿Utilizar esta fotografía?"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            android:textColor="@color/blue_grey_700" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:padding="@dimen/spacing_small"
+            android:text="@string/disclaimerText"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+            android:textColor="@color/blue_grey_700" />
+
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/btn_send_photo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="25dp"
+            android:layout_marginStart="25dp"
+            android:layout_marginEnd="25dp"
+            android:padding="15dp"
+            android:text="@string/uploadPhotoText"
+            android:textAlignment="center"
+            android:textColor="@android:color/white"
+            app:icon="@drawable/ic_photo_camera"
+            app:iconTint="@android:color/white"
+            app:backgroundTint="@color/colorPrimary"/>
+        <Button
+            android:id="@+id/btn_another_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/takeAnotherPhotoText"
+            android:layout_marginTop="25dp"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            />
+
+
+    </LinearLayout>
+
+    <!--Loading container-->
+    <LinearLayout
+        android:id="@+id/lyt_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|center_horizontal"
+        android:layout_margin="@dimen/spacing_medium"
+        android:orientation="vertical">
+
+        <ProgressBar
+            android:indeterminate="true"
+            android:id="@+id/updateProgressBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawingCacheQuality="high"
+            android:indeterminateBehavior="repeat"
+            android:indeterminateDrawable="@drawable/custom_loading"
+            android:indeterminateDuration="2000"
+            />
+
+        <TextView
+            android:layout_marginTop="@dimen/spacing_large"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Verificando datos"/>
+    </LinearLayout>
+    <!--Loading container-->
+
+</FrameLayout>
