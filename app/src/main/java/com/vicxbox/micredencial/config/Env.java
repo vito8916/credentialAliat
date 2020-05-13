@@ -21,8 +21,10 @@ public class Env {
 
     //This would be the name of our shared preferences
     public static final String SHARED_PREF_NAME = "pref_credential";
+    public static final String SHARED_PREF_CREATEDAT = "pref_created_at";
     //****
-    public static final String LOCAL_STORED_DATA = "localdata";
+    public static final String LOCAL_STORED_DATA = "localdata_exist";
+    public static final String LOCAL_CREDENTIAL_STATUS = "solicitud_fisica";
 
     public static final String LOCAL_FOTO_PATH = "comple_path_photo";
     public static final String LOCAL_FOTO_NAME = "complete_name_photo";

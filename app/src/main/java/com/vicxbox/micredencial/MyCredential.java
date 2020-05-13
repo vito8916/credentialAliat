@@ -18,6 +18,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.drawable.ColorDrawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -40,6 +42,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.github.dhaval2404.imagepicker.ImagePicker;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.vicxbox.micredencial.config.Env;
@@ -54,6 +57,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -83,6 +90,7 @@ public class MyCredential extends AppCompatActivity {
 
     //llayouts variables
     LinearLayout lyt_progress;
+    LinearLayout ly_alert_no_internet;
     LinearLayout lyCondicionEspecial;
     NestedScrollView credentialContainer;
     private View parent_view;
@@ -92,6 +100,7 @@ public class MyCredential extends AppCompatActivity {
     private CompoundButton chkRequestCredential;
     Dialog dialog;
     private FloatingActionButton fab;
+       ExtendedFloatingActionButton btnCancelarSolicitud;
 
     /*views of credentials*/
     ImageView imageLogo, imagePreview;;
@@ -115,12 +124,14 @@ public class MyCredential extends AppCompatActivity {
         mcontext = getApplicationContext();
 
         lyt_progress = findViewById(R.id.lyt_progress);
+        ly_alert_no_internet = findViewById(R.id.ly_alert_no_internet);
         lyCondicionEspecial = findViewById(R.id.ly_condicion_especial);
         credentialContainer = findViewById(R.id.nested_content);
 
         chkRequestCredential = findViewById(R.id.chk_request_credencial);
         progress_bar = (ProgressBar) findViewById(R.id.progress_bar);
         fab = (FloatingActionButton) findViewById(R.id.fab_send_image);
+        btnCancelarSolicitud = findViewById(R.id.btn_cancelar_solicitud);
 
         /*credential view components biding*/
         imagePreview = findViewById(R.id.image_preview);
@@ -145,16 +156,258 @@ public class MyCredential extends AppCompatActivity {
         sharedPreferences = getSharedPreferences(Env.SHARED_PREF_NAME,
                 Context.MODE_PRIVATE);
 
-        // Obtener la información de la credencial del estudiante haciendo un request POST
-        try {
-            getDataFromWebService();
-        } catch (IOException e) {
-            e.printStackTrace();
+        /*
+        * Lo primero es comprobar el estado de la conexion a internet con esta pequeña función:: haveNetwork()
+        * Si el dispositivo esta conectado a internet al momento en el que la actividad es creada, se llaman a las
+        * 2 funciones iniiciales para obtener los datos del usuario.
+        * Sino esta conectado a internet, se valida si tiene DaTa en Caché y la vigencia de la misma.
+         */
+        if (haveNetwork()){
+            // Obtener la información de la credencial del estudiante haciendo un request POST
+            try {
+                getDataFromWebService();
+                verifyphisicalCredential();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            ly_alert_no_internet.setVisibility(View.GONE);
+
+        } else if (!haveNetwork()) {
+            //desactivar los unicos dos componentes con interacción de esta actividad
+            fbtnEditPhoto.setEnabled(false);
+            chkRequestCredential.setEnabled(false);
+
+            //muestra una especie de alerta al top de la pantalla
+            ly_alert_no_internet.setVisibility(View.VISIBLE);
+
+            Snackbar.make(parent_view, "No tienes conexión a internet", Snackbar.LENGTH_LONG).show();
+            //obtenemos la confirmación si evidentemente existe data localmente
+            boolean islLocalDataExist = sharedPreferences.getBoolean(Env.LOCAL_STORED_DATA, false);
+
+            //validamos que si existe información en local
+            if(islLocalDataExist) {
+                String currentDate = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
+                String dataCreatedAt = sharedPreferences.getString(Env.SHARED_PREF_CREATEDAT, "");
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+
+                //obtener la diferencia de dias entre la fecha actual y la fecha en la que fue creada la caché de la Data
+                int dateDifference = Integer.parseInt(getDateDiff(dateFormat, dataCreatedAt, currentDate));
+                if(dateDifference > 7){
+                    sharedPreferences.edit().clear().commit();
+                    new AlertDialog.Builder(this)
+                            .setTitle("¡Atención!")
+                            .setMessage("No se pudo obtener la inforamción requerida. Revisa tu conexión a internet.")
+                            .setPositiveButton("Salir", (dialog, which) -> returToMainActivity())
+                            .create()
+                            .show();
+                }
+
+                //obtener el objeto de la Data guadada en local storage parse to JSONObject
+                String localJsonData = sharedPreferences.getString(Env.LOCAL_jsonresponse_DATA, "");
+                try {
+                    JSONObject jsonLocal = new JSONObject(localJsonData);
+                    validateSaldo(jsonLocal);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+            } else {//si obtenemos false, no existe data local.
+                new AlertDialog.Builder(this)
+                        .setTitle("¡Atención!")
+                        .setMessage("No se pudo obtener la inforamción requerida. Revisa tu conexión a internet.")
+                        .setPositiveButton("Salir", (dialog, which) -> returToMainActivity())
+                        .create()
+                        .show();
+            }
+
         }
 
-        //Inicializamos algunas funcionalidades extras para otorgar funcionalidades requeridas a la acttividad
+        //Inicializamos algunas funciones extras para otorgar funcionalidades requeridas a la acttividad
         initFuncionalityListener();
 
+    }
+
+    /*En esta funcion hacemos un request para obtener la información acerca del estado de la solicitud
+    * fisica de la credencial*/
+    private void verifyphisicalCredential() {
+
+        OkHttpClient client = new OkHttpClient
+                .Builder()
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .build();
+
+        RequestBody formBody = new FormBody.Builder()
+                .add("data1", "Ggjaah7q4eUblT2xuQJI8q4Y9xW4IVLQdBFWVw8KK0Y%3D&")
+                .add("data4", "pNrbnwnt40Ze5%2FumFea7Bw%3D%3D%data5=")
+                .add("data8", "EECsUI5zwp6iJOIDh9vu2g%3D%3D&")
+                .add("data17", "3")
+                .build();
+        Request request = new Request.Builder()
+                .post(formBody)
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .url("https://pagos.aliat.edu.mx/autoservicio/webservicenew/webservicecredencialsolicitud.php")
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e("RESPONSE1::", "" + e);
+                call.cancel();
+                //showAlertDialog();
+            }
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+
+                final String myResponse = response.body().string();
+                Log.d("RESPONSE1::", "" + myResponse);
+                MyCredential.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+
+                            JSONObject json = new JSONObject(myResponse);
+                            if(json.getString("solicitud").equals("1")) {
+                                chkRequestCredential.setChecked(true);
+                                chkRequestCredential.setEnabled(false);
+                                fab.setVisibility(View.GONE);
+                                btnCancelarSolicitud.setVisibility(View.VISIBLE);
+                            }
+
+                            if(json.getString("solicitud").equals("2")) {
+                                Snackbar.make(parent_view, "La solicitud de la credencial fue cancelada",
+                                        Snackbar.LENGTH_LONG).show();
+
+                                chkRequestCredential.setChecked(false);
+                                chkRequestCredential.setEnabled(true);
+                                btnCancelarSolicitud.setVisibility(View.GONE);
+                            }
+
+                            // setDataToLocalStorage(json);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putString(Env.LOCAL_CREDENTIAL_STATUS, json.getString("solicitud"));
+                            editor.apply();
+
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+            }
+        });
+    }
+
+    /*enviar solicitud o cancelar una.
+    * crearemos una funcion que sirva para ambos aspectos diferenciando por un flag que recibe cono parametro
+    * enviado desde el clock listener de cada boton*/
+    public void sendOrCancelCredential(String flag) {
+        String data17 = "";
+        if(!haveNetwork()) {
+            return;
+        }
+
+        if(flag.equals("send")){
+            data17 = "1"; //TODO cambiar este valor del data 17 por el valor encriptado correspondiente
+        }
+
+        if(flag.equals("cancel")){
+            data17 = "2"; //TODO cambiar este valor del data 17 por el valor encriptado correspondiente
+        }
+
+        OkHttpClient client = new OkHttpClient
+                .Builder()
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .build();
+
+        RequestBody formBody = new FormBody.Builder()
+                .add("data1", "Ggjaah7q4eUblT2xuQJI8q4Y9xW4IVLQdBFWVw8KK0Y%3D&")
+                .add("data4", "pNrbnwnt40Ze5%2FumFea7Bw%3D%3D%data5=")
+                .add("data8", "EECsUI5zwp6iJOIDh9vu2g%3D%3D&")
+                .add("data17", data17)
+                .build();
+        Request request = new Request.Builder()
+                .post(formBody)
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .url("https://pagos.aliat.edu.mx/autoservicio/webservicenew/webservicecredencialsolicitud.php")
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e("RESPONSE1::", "" + e);
+                call.cancel();
+                //showAlertDialog();
+            }
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+
+                final String myResponse = response.body().string();
+                Log.d("RESPONSE1::", "" + myResponse);
+                MyCredential.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        try {
+                            JSONObject respuesta = new JSONObject(myResponse);
+
+                            if(respuesta.getBoolean("response")) {
+                                if (flag.equals("send")){
+                                    progress_bar.setVisibility(View.GONE);
+                                    fab.setAlpha(1f);
+                                    Snackbar.make(parent_view, "Solicitud exitosa", Snackbar.LENGTH_SHORT).show();
+                                }
+
+                                if (flag.equals("cancel")){
+                                    Snackbar.make(parent_view, "Se ha cancelado la solicitud de la credencial",
+                                            Snackbar.LENGTH_SHORT).show();
+                                }
+
+
+                                verifyphisicalCredential();
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+            }
+        });
+
+    }
+
+
+    /*
+    * obtener la diferencia entre 2 fechas
+    * recibe como parametros un formato de fecha en dd-MM-yyy, la fecha de creacion de los SharedPreference
+    * y la fecha actual. 7 días es el tiempo límite para alcenar la data en caché
+    */
+    public String getDateDiff(SimpleDateFormat format, String oldDate, String newDate) {
+        String dayDifference = "";
+        try {
+            String CurrentDate= oldDate;
+            String FinalDate= newDate;
+            Date date1;
+            Date date2;
+            date1 = format.parse(CurrentDate);
+            date2 = format.parse(FinalDate);
+            long difference = Math.abs(date1.getTime() - date2.getTime());
+            long differenceDates = difference / (24 * 60 * 60 * 1000);
+            dayDifference = Long.toString(differenceDates);
+           return  dayDifference;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return  dayDifference;
     }
 
     /**
@@ -204,10 +457,13 @@ public class MyCredential extends AppCompatActivity {
                             JSONObject json = new JSONObject(myResponse);
 
                             if(json.getBoolean("estatus")){
-                               // setDataToLocalStorage(json);
+                                String currentDate = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
 
+                                // setDataToLocalStorage(json);
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putString(Env.LOCAL_jsonresponse_DATA, json.toString());
+                                editor.putString(Env.SHARED_PREF_CREATEDAT, currentDate);
+                                editor.putBoolean(Env.LOCAL_STORED_DATA, true);
                                 editor.apply();
 
                                 validateSaldo(json);
@@ -258,6 +514,16 @@ public class MyCredential extends AppCompatActivity {
         ViewAnimation.fadeIn(lyt_progress);
 
         try {
+
+            /*verificar estado de solicitud de credencail*/
+            String statusFisicaCred = sharedPreferences.getString(Env.LOCAL_CREDENTIAL_STATUS, "");
+            if(statusFisicaCred.equals("1")) {
+                chkRequestCredential.setChecked(true);
+                chkRequestCredential.setEnabled(false);
+                fab.hide();
+                btnCancelarSolicitud.show();
+            }
+
             //obtener el objeto de la Data guadada en local storage parse to JSONObject
             String localJsonData = sharedPreferences.getString(Env.LOCAL_jsonresponse_DATA, "");
             JSONObject json = new JSONObject(localJsonData);
@@ -276,9 +542,17 @@ public class MyCredential extends AppCompatActivity {
                     .skipMemoryCache(true)
                     .into(imageLogo);
 
+            String pathFoto;
+            Bitmap bitmap = null;
+            if (haveNetwork()) {
+                pathFoto = json.getString("foto");
+            } else {
+                pathFoto = sharedPreferences.getString(Env.LOCAL_FOTO_PATH, "");
+                Log.d("JUUUUM", " " + pathFoto);
+            }
             ////set photo preview to foto ImageView using Glade
             Glide.with(MyCredential.this)
-                    .load(json.getString("foto"))
+                    .load(pathFoto)
                     .placeholder(R.drawable.ic_generic_avatar)
                     .centerCrop()
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
@@ -383,6 +657,27 @@ public class MyCredential extends AppCompatActivity {
             }
         });
 
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                progress_bar.setVisibility(View.VISIBLE);
+                fab.setAlpha(0f);
+
+                String title = "¡Aviso!";
+                String msg = "Esta acción creará una solicitud para la creación fisica de una credential. ¿Deseas continuar?";
+                sendOrCancelAlertDialog(title, msg, "send");
+            }
+        });
+        btnCancelarSolicitud.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String title = "¡Cuidado!";
+                String msg = "Estás a punto de cancelar la creación física de tu credencial. ¿Deseas continuar?";
+                sendOrCancelAlertDialog(title, msg, "cancel");
+            }
+        });
+
     }
 
     /*FUNCIONES PARA LOS DIALOGOS*/
@@ -406,6 +701,25 @@ public class MyCredential extends AppCompatActivity {
         });
         builder.setNegativeButton(R.string.closeText, (dialog, which) -> {
             returToMainActivity();
+        });
+        builder.show();
+    }
+
+    private void sendOrCancelAlertDialog(String title, String msg, String flag) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+        builder.setMessage(msg);
+        builder.setCancelable(true);
+        builder.setPositiveButton("Estoy de acuerdo", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                sendOrCancelCredential(flag);
+            }
+        });
+        builder.setNegativeButton(R.string.closeText, (dialog, which) -> {
+            dialog.dismiss();
+            progress_bar.setVisibility(View.GONE);
+            fab.setAlpha(1f);
         });
         builder.show();
     }
@@ -680,6 +994,18 @@ public class MyCredential extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), item.getTitle(), Toast.LENGTH_SHORT).show();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private boolean haveNetwork(){
+        boolean have_WIFI= false;
+        boolean have_MobileData = false;
+        ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
+        NetworkInfo[] networkInfos = connectivityManager.getAllNetworkInfo();
+        for(NetworkInfo info:networkInfos){
+            if (info.getTypeName().equalsIgnoreCase("WIFI"))if (info.isConnected())have_WIFI=true;
+            if (info.getTypeName().equalsIgnoreCase("MOBILE DATA"))if (info.isConnected())have_MobileData=true;
+        }
+        return have_WIFI||have_MobileData;
     }
 
 }

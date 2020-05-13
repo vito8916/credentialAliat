@@ -188,6 +188,7 @@ public class VerifyPhotoActivity extends AppCompatActivity implements NetworkSta
             @Override
             public void onFailure(Call call, IOException e) {
                 Log.e("RESPONSE_tienefoto", "" + e);
+                ViewAnimation.hideScale(lyt_progress);
                 call.cancel();
             }
 
