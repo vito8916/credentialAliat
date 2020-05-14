@@ -62,6 +62,7 @@ public class DialogSolicitudtFragment extends DialogFragment {
     String statusFisicaCred;
     public CallbackResult callbackResult;
     int banderitaTimer = 0;
+    CountDownTimer timerDown;
 
     Context context;
 
@@ -130,6 +131,7 @@ public class DialogSolicitudtFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 dglyt_progress.setVisibility(View.VISIBLE);
+                dglyt_progress.setAlpha(1.0f);
                 String title = "¡Aviso!";
                 String msg = "Esta acción creará una solicitud para la creación fisica de una credential. ¿Deseas continuar?";
                 sendOrCancelAlertDialog(title, msg, "send");
@@ -138,6 +140,7 @@ public class DialogSolicitudtFragment extends DialogFragment {
         fabCancelar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                dglyt_progress.setAlpha(1.0f);
                 dglyt_progress.setVisibility(View.VISIBLE);
                 String title = "¡Cuidado!";
                 String msg = "Estás a punto de cancelar la creación física de tu credencial. ¿Deseas continuar?";
@@ -161,6 +164,7 @@ public class DialogSolicitudtFragment extends DialogFragment {
         if (callbackResult != null) {
             callbackResult.sendResult(request_code);
         }
+
         dismiss();
     }
 
@@ -236,6 +240,7 @@ public class DialogSolicitudtFragment extends DialogFragment {
                                     fabCrear.setVisibility(View.GONE);
 
                                     txt_info_tocancel.setVisibility(View.VISIBLE);
+                                    fabCancelar.setVisibility(View.VISIBLE);
                                     fabCancelar.setEnabled(true);
                                     break;
                                 case "2":
@@ -307,16 +312,7 @@ public class DialogSolicitudtFragment extends DialogFragment {
         dialog.setCancelable(false);
 
         TextView countDownTime;
-        CountDownTimer timerDown;
         countDownTime = dialog.findViewById(R.id.tx_count_down);
-
-        ((AppCompatButton) dialog.findViewById(R.id.bt_close)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-                onPaymentClick();
-            }
-        });
 
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
@@ -334,7 +330,7 @@ public class DialogSolicitudtFragment extends DialogFragment {
             Date nowS = new Date();
             DateTime jjj = new DateTime(nowS);
 
-            new CountDownTimer(
+            timerDown = new CountDownTimer(
                     ((5)*60000) - (Seconds.secondsBetween(jjgg, jjj).getSeconds()*1000),
                     1000) {
 
@@ -357,22 +353,15 @@ public class DialogSolicitudtFragment extends DialogFragment {
             e.printStackTrace();
         }
 
-        /*new CountDownTimer(((placeholderTime)*60000), 1000) {
-            public void onTick(long millisUntilFinished) {
-                countDownTime.setText("Tiempo restante: " + millisUntilFinished / 1000);
-                int seconds = (int) (millisUntilFinished / 1000);
-                int minutes = seconds / 60;
-                seconds = seconds % 60;
-                countDownTime.setText("" + String.format("%02d", minutes)
-                        + ":" + String.format("%02d", seconds));
-                //here you can have your logic to set text to edittext
-            }
-            public void onFinish() {
+        ((AppCompatButton) dialog.findViewById(R.id.bt_close)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 dialog.dismiss();
                 onPaymentClick();
+                timerDown.cancel();
             }
+        });
 
-        }.start();*/
     }
 
     private void sendOrCancelAlertDialog(String title, String msg, String flag) {
@@ -432,6 +421,7 @@ public class DialogSolicitudtFragment extends DialogFragment {
             public void onFailure(Call call, IOException e) {
                 Log.e("RESPONSE1::", "" + e);
                 call.cancel();
+                dglyt_progress.setVisibility(View.GONE);
                 //showAlertDialog();
             }
             @Override
@@ -450,9 +440,11 @@ public class DialogSolicitudtFragment extends DialogFragment {
                         try {
                             JSONObject respuesta = new JSONObject(myResponse);
 
+                            dglyt_progress.setVisibility(View.GONE);
+
                             if(respuesta.getBoolean("response")) {
                                 if (flag.equals("send")){
-                                    dglyt_progress.setVisibility(View.GONE);
+
                                     Snackbar.make(getView(), "Solicitud Creada", Snackbar.LENGTH_SHORT).show();
 
                                     ly_switcsolicitud.setVisibility(View.GONE);
@@ -522,15 +514,20 @@ public class DialogSolicitudtFragment extends DialogFragment {
     }
 
     public boolean haveNetwork(){
-        boolean have_WIFI= false;
-        boolean have_MobileData = false;
-        ConnectivityManager connectivityManager = (ConnectivityManager)getActivity().getSystemService(CONNECTIVITY_SERVICE);
-        NetworkInfo[] networkInfos = connectivityManager.getAllNetworkInfo();
-        for(NetworkInfo info:networkInfos){
-            if (info.getTypeName().equalsIgnoreCase("WIFI"))if (info.isConnected())have_WIFI=true;
-            if (info.getTypeName().equalsIgnoreCase("MOBILE DATA"))if (info.isConnected())have_MobileData=true;
+        final ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if (connMgr != null) {
+            NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
+
+            if (activeNetworkInfo != null) { // connected to the internet
+                // connected to the mobile provider's data plan
+                if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                    // connected to wifi
+                    return true;
+                } else return activeNetworkInfo.getType() == ConnectivityManager.TYPE_MOBILE;
+            }
         }
-        return have_WIFI||have_MobileData;
+        return false;
     }
 
 }

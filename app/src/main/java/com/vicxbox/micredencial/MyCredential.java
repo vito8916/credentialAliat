@@ -153,7 +153,7 @@ public class MyCredential extends AppCompatActivity {
         * 2 funciones iniiciales para obtener los datos del usuario.
         * Sino esta conectado a internet, se valida si tiene DaTa en Caché y la vigencia de la misma.
          */
-        if (haveNetwork()){
+        if (haveNetwork(mcontext)){
             // Obtener la información de la credencial del estudiante haciendo un request POST
             try {
                 getDataFromWebService();
@@ -163,7 +163,7 @@ public class MyCredential extends AppCompatActivity {
 
             ly_alert_no_internet.setVisibility(View.GONE);
 
-        } else if (!haveNetwork()) {
+        } else if (!haveNetwork(mcontext)) {
             //desactivar los unicos dos componentes con interacción de esta actividad
             fbtnEditPhoto.setEnabled(false);
             fabEditarSolicitud.setEnabled(false);
@@ -443,7 +443,7 @@ public class MyCredential extends AppCompatActivity {
 
             String pathFoto;
             Bitmap bitmap = null;
-            if (haveNetwork()) {
+            if (haveNetwork(mcontext)) {
                 pathFoto = json.getString("foto");
             } else {
                 pathFoto = sharedPreferences.getString(Env.LOCAL_FOTO_PATH, "");
@@ -819,7 +819,7 @@ public class MyCredential extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public boolean haveNetwork(){
+    /*public boolean haveNetwork(){
         boolean have_WIFI= false;
         boolean have_MobileData = false;
         ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
@@ -829,6 +829,26 @@ public class MyCredential extends AppCompatActivity {
             if (info.getTypeName().equalsIgnoreCase("MOBILE DATA"))if (info.isConnected())have_MobileData=true;
         }
         return have_WIFI||have_MobileData;
+    }*/
+
+    /**
+     * CHECK WHETHER INTERNET CONNECTION IS AVAILABLE OR NOT
+     */
+    public boolean haveNetwork(Context context) {
+        final ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if (connMgr != null) {
+            NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
+
+            if (activeNetworkInfo != null) { // connected to the internet
+                // connected to the mobile provider's data plan
+                if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                    // connected to wifi
+                    return true;
+                } else return activeNetworkInfo.getType() == ConnectivityManager.TYPE_MOBILE;
+            }
+        }
+        return false;
     }
 
 }
