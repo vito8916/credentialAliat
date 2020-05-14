@@ -3,8 +3,11 @@ package com.vicxbox.micredencial;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.widget.NestedScrollView;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.Manifest;
 import android.app.Dialog;
@@ -20,7 +23,6 @@ import android.graphics.Matrix;
 import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -31,21 +33,18 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.github.dhaval2404.imagepicker.ImagePicker;
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.vicxbox.micredencial.config.Env;
+import com.vicxbox.micredencial.fragments.DialogSolicitudtFragment;
 import com.vicxbox.micredencial.utils.ViewAnimation;
 
 import org.json.JSONException;
@@ -57,7 +56,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.text.Format;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -74,6 +73,8 @@ import okhttp3.Response;
 public class MyCredential extends AppCompatActivity {
 
     Context mcontext;
+
+    public static final int DIALOG_QUEST_CODE = 300;
 
     // permission Constants
     private static final int REQUEST_CODE_PERMISSION = 1122;
@@ -95,12 +96,6 @@ public class MyCredential extends AppCompatActivity {
     NestedScrollView credentialContainer;
     private View parent_view;
 
-    //components variables
-    private ProgressBar progress_bar;
-    private CompoundButton chkRequestCredential;
-    Dialog dialog;
-    private FloatingActionButton fab;
-       ExtendedFloatingActionButton btnCancelarSolicitud;
 
     /*views of credentials*/
     ImageView imageLogo, imagePreview;;
@@ -108,7 +103,7 @@ public class MyCredential extends AppCompatActivity {
     txtAdeudadoTitle, txtAdeudadoMsg;
 
     Button btnAdeudadoCondspecial;
-    FloatingActionButton fbtnEditPhoto;
+    FloatingActionButton fbtnEditPhoto, fabEditarSolicitud;
 
     //Creating a shared preference
     SharedPreferences sharedPreferences;
@@ -117,7 +112,7 @@ public class MyCredential extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_credential);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+       // getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //inflate views
         parent_view = findViewById(android.R.id.content);
@@ -127,11 +122,6 @@ public class MyCredential extends AppCompatActivity {
         ly_alert_no_internet = findViewById(R.id.ly_alert_no_internet);
         lyCondicionEspecial = findViewById(R.id.ly_condicion_especial);
         credentialContainer = findViewById(R.id.nested_content);
-
-        chkRequestCredential = findViewById(R.id.chk_request_credencial);
-        progress_bar = (ProgressBar) findViewById(R.id.progress_bar);
-        fab = (FloatingActionButton) findViewById(R.id.fab_send_image);
-        btnCancelarSolicitud = findViewById(R.id.btn_cancelar_solicitud);
 
         /*credential view components biding*/
         imagePreview = findViewById(R.id.image_preview);
@@ -149,6 +139,7 @@ public class MyCredential extends AppCompatActivity {
         txtAdeudadoMsg = findViewById(R.id.txt_adeudado_msg);
         btnAdeudadoCondspecial = findViewById(R.id.btn_adeudado_condspe);
         fbtnEditPhoto = findViewById(R.id.fbtn_edit_photo);
+        fabEditarSolicitud = findViewById(R.id.fbtn_solicitud);
 
         url = Env.BASEURLPATH;
 
@@ -166,7 +157,6 @@ public class MyCredential extends AppCompatActivity {
             // Obtener la información de la credencial del estudiante haciendo un request POST
             try {
                 getDataFromWebService();
-                verifyphisicalCredential();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -176,7 +166,7 @@ public class MyCredential extends AppCompatActivity {
         } else if (!haveNetwork()) {
             //desactivar los unicos dos componentes con interacción de esta actividad
             fbtnEditPhoto.setEnabled(false);
-            chkRequestCredential.setEnabled(false);
+            fabEditarSolicitud.setEnabled(false);
 
             //muestra una especie de alerta al top de la pantalla
             ly_alert_no_internet.setVisibility(View.VISIBLE);
@@ -213,7 +203,6 @@ public class MyCredential extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-
             } else {//si obtenemos false, no existe data local.
                 new AlertDialog.Builder(this)
                         .setTitle("¡Atención!")
@@ -227,164 +216,51 @@ public class MyCredential extends AppCompatActivity {
 
         //Inicializamos algunas funciones extras para otorgar funcionalidades requeridas a la acttividad
         initFuncionalityListener();
+        initToolbar();
+
+        Log.e("Difference: ", "minutes: " + getTimeDiff("2020-05-13 23:30:00"));
 
     }
 
-    /*En esta funcion hacemos un request para obtener la información acerca del estado de la solicitud
-    * fisica de la credencial*/
-    private void verifyphisicalCredential() {
+    private void initToolbar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setNavigationIcon(R.drawable.ic_arrow_back);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("Mi Credencial");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
 
-        OkHttpClient client = new OkHttpClient
-                .Builder()
-                .connectTimeout(60, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS)
-                .writeTimeout(60, TimeUnit.SECONDS)
-                .build();
+    /*funcionalidades extras como algunos listeners de ciertos componentes para agregar funcionalidad a la actividad*/
+    private void initFuncionalityListener() {
 
-        RequestBody formBody = new FormBody.Builder()
-                .add("data1", "Ggjaah7q4eUblT2xuQJI8q4Y9xW4IVLQdBFWVw8KK0Y%3D&")
-                .add("data4", "pNrbnwnt40Ze5%2FumFea7Bw%3D%3D%data5=")
-                .add("data8", "EECsUI5zwp6iJOIDh9vu2g%3D%3D&")
-                .add("data17", "3")
-                .build();
-        Request request = new Request.Builder()
-                .post(formBody)
-                .addHeader("Content-Type", "application/x-www-form-urlencoded")
-                .url("https://pagos.aliat.edu.mx/autoservicio/webservicenew/webservicecredencialsolicitud.php")
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
+        /*listener para floating button de editar la foto en la credencial*/
+        fbtnEditPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onFailure(Call call, IOException e) {
-                Log.e("RESPONSE1::", "" + e);
-                call.cancel();
-                //showAlertDialog();
-            }
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onClick(View v) {
+                //obtener la data local
+                String localJsonData = sharedPreferences.getString(Env.LOCAL_jsonresponse_DATA, "");
 
-                final String myResponse = response.body().string();
-                Log.d("RESPONSE1::", "" + myResponse);
-                MyCredential.this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-
-                            JSONObject json = new JSONObject(myResponse);
-                            if(json.getString("solicitud").equals("1")) {
-                                chkRequestCredential.setChecked(true);
-                                chkRequestCredential.setEnabled(false);
-                                fab.setVisibility(View.GONE);
-                                btnCancelarSolicitud.setVisibility(View.VISIBLE);
-                            }
-
-                            if(json.getString("solicitud").equals("2")) {
-                                Snackbar.make(parent_view, "La solicitud de la credencial fue cancelada",
-                                        Snackbar.LENGTH_LONG).show();
-
-                                chkRequestCredential.setChecked(false);
-                                chkRequestCredential.setEnabled(true);
-                                btnCancelarSolicitud.setVisibility(View.GONE);
-                            }
-
-                            // setDataToLocalStorage(json);
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putString(Env.LOCAL_CREDENTIAL_STATUS, json.getString("solicitud"));
-                            editor.apply();
-
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
+                try {
+                    JSONObject jsonLocal = new JSONObject(localJsonData);
+                    if(jsonLocal.getBoolean("opcional")) {
+                        showDialogImageFull(jsonLocal.getString("foto"));
+                    } else {
+                        Snackbar.make(parent_view, "No tienes permisos para editar tu foto", Snackbar.LENGTH_SHORT).show();
                     }
-                });
-
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
-    }
 
-    /*enviar solicitud o cancelar una.
-    * crearemos una funcion que sirva para ambos aspectos diferenciando por un flag que recibe cono parametro
-    * enviado desde el clock listener de cada boton*/
-    public void sendOrCancelCredential(String flag) {
-        String data17 = "";
-        if(!haveNetwork()) {
-            return;
-        }
-
-        if(flag.equals("send")){
-            data17 = "1"; //TODO cambiar este valor del data 17 por el valor encriptado correspondiente
-        }
-
-        if(flag.equals("cancel")){
-            data17 = "2"; //TODO cambiar este valor del data 17 por el valor encriptado correspondiente
-        }
-
-        OkHttpClient client = new OkHttpClient
-                .Builder()
-                .connectTimeout(60, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS)
-                .writeTimeout(60, TimeUnit.SECONDS)
-                .build();
-
-        RequestBody formBody = new FormBody.Builder()
-                .add("data1", "Ggjaah7q4eUblT2xuQJI8q4Y9xW4IVLQdBFWVw8KK0Y%3D&")
-                .add("data4", "pNrbnwnt40Ze5%2FumFea7Bw%3D%3D%data5=")
-                .add("data8", "EECsUI5zwp6iJOIDh9vu2g%3D%3D&")
-                .add("data17", data17)
-                .build();
-        Request request = new Request.Builder()
-                .post(formBody)
-                .addHeader("Content-Type", "application/x-www-form-urlencoded")
-                .url("https://pagos.aliat.edu.mx/autoservicio/webservicenew/webservicecredencialsolicitud.php")
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
+        fabEditarSolicitud.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onFailure(Call call, IOException e) {
-                Log.e("RESPONSE1::", "" + e);
-                call.cancel();
-                //showAlertDialog();
-            }
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-
-                final String myResponse = response.body().string();
-                Log.d("RESPONSE1::", "" + myResponse);
-                MyCredential.this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        try {
-                            JSONObject respuesta = new JSONObject(myResponse);
-
-                            if(respuesta.getBoolean("response")) {
-                                if (flag.equals("send")){
-                                    progress_bar.setVisibility(View.GONE);
-                                    fab.setAlpha(1f);
-                                    Snackbar.make(parent_view, "Solicitud exitosa", Snackbar.LENGTH_SHORT).show();
-                                }
-
-                                if (flag.equals("cancel")){
-                                    Snackbar.make(parent_view, "Se ha cancelado la solicitud de la credencial",
-                                            Snackbar.LENGTH_SHORT).show();
-                                }
-
-
-                                verifyphisicalCredential();
-                            }
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-
+            public void onClick(View v) {
+                showDialogSolicitud();
             }
         });
 
     }
-
 
     /*
     * obtener la diferencia entre 2 fechas
@@ -408,6 +284,35 @@ public class MyCredential extends AppCompatActivity {
             e.printStackTrace();
         }
         return  dayDifference;
+    }
+
+    public int getTimeDiff(String oldDate) {
+
+        int minutos = 0;
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+
+        try {
+
+            Date oldTime = dateFormat.parse(oldDate);
+            Date currentDate = new Date();
+
+            long diff = currentDate.getTime() - oldTime.getTime();
+            long seconds = diff / 1000;
+            long minutes = seconds / 60;
+            long hours = minutes / 60;
+            long days = hours / 24;
+
+            if (oldTime.before(currentDate)) {
+
+                Log.e("Difference: ", "minutes: " + minutes);
+                minutos = (int) minutes;
+            }
+
+        } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+        return minutos;
     }
 
     /**
@@ -487,7 +392,6 @@ public class MyCredential extends AppCompatActivity {
     /*en esta función validamos el saldo adeudado del estudiante*/
     private void validateSaldo(JSONObject json) {
         boolean specialCond = false;
-        ViewAnimation.hideScale(lyt_progress);
 
         try {
             //validar el saldo del estudiante
@@ -513,20 +417,15 @@ public class MyCredential extends AppCompatActivity {
     private void showCredential() {
         ViewAnimation.fadeIn(lyt_progress);
 
+
         try {
-
-            /*verificar estado de solicitud de credencail*/
-            String statusFisicaCred = sharedPreferences.getString(Env.LOCAL_CREDENTIAL_STATUS, "");
-            if(statusFisicaCred.equals("1")) {
-                chkRequestCredential.setChecked(true);
-                chkRequestCredential.setEnabled(false);
-                fab.hide();
-                btnCancelarSolicitud.show();
-            }
-
             //obtener el objeto de la Data guadada en local storage parse to JSONObject
             String localJsonData = sharedPreferences.getString(Env.LOCAL_jsonresponse_DATA, "");
             JSONObject json = new JSONObject(localJsonData);
+
+            if(!json.getBoolean("opcional")) {
+                fbtnEditPhoto.setEnabled(false);
+            }
 
             //Get Marca logo by name
             String logoName = "ic_logo_" + json.getString("marca").toLowerCase();
@@ -585,6 +484,7 @@ public class MyCredential extends AppCompatActivity {
             public void run() {
                 ViewAnimation.fadeOut(lyt_progress);
                 ViewAnimation.fadeIn(credentialContainer);
+                fabEditarSolicitud.setVisibility(View.VISIBLE);
             }
         }, 1000);
 
@@ -605,79 +505,6 @@ public class MyCredential extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{CAMERA_PERMISSION, READ_EXTERNAL_STORAGE,
                     WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_PERMISSION);
         }
-    }
-
-    /*funcionalidades extras como algunos listeners de ciertos componentes para agregar funcionalidad a la actividad*/
-    private void initFuncionalityListener() {
-
-        if(chkRequestCredential.isChecked()){
-            fab.show();
-        } else {
-            fab.hide();
-        }
-        chkRequestCredential.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
-                    fab.show();
-                    if (fab.getVisibility() == View.VISIBLE){
-
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                // This method will be executed once the timer is over
-                                credentialContainer.fullScroll(ScrollView.FOCUS_DOWN);
-                            }
-                        }, 15);
-                        credentialContainer.fullScroll(View.FOCUS_DOWN);
-                    }
-                } else {
-                    fab.hide();
-                }
-            }
-        });
-
-        /*listener para floating button de editar la foto en la credencial*/
-        fbtnEditPhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //obtener la data local
-                String localJsonData = sharedPreferences.getString(Env.LOCAL_jsonresponse_DATA, "");
-
-                try {
-                    JSONObject jsonLocal = new JSONObject(localJsonData);
-                    if(jsonLocal.getBoolean("opcional")) {
-                        showDialogImageFull(jsonLocal.getString("foto"));
-                    } else {
-                        Snackbar.make(parent_view, "No tienes permisos para editar tu foto", Snackbar.LENGTH_SHORT).show();
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                progress_bar.setVisibility(View.VISIBLE);
-                fab.setAlpha(0f);
-
-                String title = "¡Aviso!";
-                String msg = "Esta acción creará una solicitud para la creación fisica de una credential. ¿Deseas continuar?";
-                sendOrCancelAlertDialog(title, msg, "send");
-            }
-        });
-        btnCancelarSolicitud.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String title = "¡Cuidado!";
-                String msg = "Estás a punto de cancelar la creación física de tu credencial. ¿Deseas continuar?";
-                sendOrCancelAlertDialog(title, msg, "cancel");
-            }
-        });
-
     }
 
     /*FUNCIONES PARA LOS DIALOGOS*/
@@ -705,23 +532,19 @@ public class MyCredential extends AppCompatActivity {
         builder.show();
     }
 
-    private void sendOrCancelAlertDialog(String title, String msg, String flag) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(title);
-        builder.setMessage(msg);
-        builder.setCancelable(true);
-        builder.setPositiveButton("Estoy de acuerdo", new DialogInterface.OnClickListener() {
+    private void showDialogSolicitud() {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        DialogSolicitudtFragment newFragment = new DialogSolicitudtFragment();
+        newFragment.setRequestCode(DIALOG_QUEST_CODE);
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+        transaction.add(android.R.id.content, newFragment).addToBackStack(null).commit();
+        newFragment.setOnCallbackResult(new DialogSolicitudtFragment.CallbackResult() {
             @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                sendOrCancelCredential(flag);
+            public void sendResult(int requestCode) {
+                //Toast.makeText(getApplicationContext(), "Menu clicked", Toast.LENGTH_SHORT).show();
             }
         });
-        builder.setNegativeButton(R.string.closeText, (dialog, which) -> {
-            dialog.dismiss();
-            progress_bar.setVisibility(View.GONE);
-            fab.setAlpha(1f);
-        });
-        builder.show();
     }
 
     /*
@@ -996,7 +819,7 @@ public class MyCredential extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private boolean haveNetwork(){
+    public boolean haveNetwork(){
         boolean have_WIFI= false;
         boolean have_MobileData = false;
         ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);

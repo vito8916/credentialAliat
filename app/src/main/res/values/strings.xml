@@ -25,5 +25,6 @@
     <string name="retryChargeCred">Reintentando cargar credencial</string>
     <string name="closeText">Cerrar</string>
     <string name="no_internet">¡No tienes internet!</string>
+    <string name="msgSolicitudDialog">Indícanos si quieres solicitar tu credencial física, esta tiene un costo de MXN$ 150.00 + Envío</string>
 
 </resources>

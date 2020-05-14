@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/grey_3"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:layout_margin="@dimen/spacing_middle"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/bt_close"
+                android:layout_width="?attr/actionBarSize"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:tint="@color/blue_500"
+                app:srcCompat="@drawable/ic_close" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Solicitud de Credencial"
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Title"
+                android:textStyle="bold"
+                android:textSize="@dimen/_16sdp"
+                android:textColor="@color/blue_500" />
+
+            <View
+                android:layout_width="56dp"
+                android:layout_height="?attr/actionBarSize" />
+
+        </LinearLayout>
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/nested_scroll_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="none"
+            android:scrollingCache="true">
+
+            <LinearLayout
+                android:gravity="center"
+                android:layout_margin="@dimen/spacing_middle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!--texto del mensaje-->
+                <TextView
+                    android:gravity="center"
+                    android:paddingRight="25dp"
+                    android:paddingLeft="25dp"
+                    android:textSize="@dimen/_12sdp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/msgSolicitudDialog"
+                    android:textColor="@color/grey_90" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/spacing_xlarge"/>
+
+                <!--Imagen decorativa-->
+                <ImageView
+                    android:layout_marginStart="25dp"
+                    android:layout_marginEnd="25dp"
+                    android:src="@drawable/ic_artboardcopy"
+                    android:layout_width="@dimen/_200sdp"
+                    android:layout_height="@dimen/_220sdp"/>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/spacing_xlarge"/>
+
+                <!--SWITCH BOX-->
+                <LinearLayout
+                    android:id="@+id/ly_switcsolicitud"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/spacing_xxlarge"
+                    android:orientation="horizontal"
+                    android:paddingLeft="25dp"
+                    android:paddingRight="25dp">
+
+                    <ImageButton
+                        android:layout_width="@dimen/spacing_xmlarge"
+                        android:layout_height="@dimen/spacing_xmlarge"
+                        android:background="@android:color/transparent"
+                        android:tint="@color/blue_700"
+                        app:srcCompat="@drawable/ic_credit_card" />
+
+                    <View
+                        android:layout_width="@dimen/spacing_small"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:textSize="@dimen/_12sdp"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Solicitar credencial física"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                        android:textColor="@color/grey_90" />
+
+                    <View
+                        android:layout_width="@dimen/spacing_middle"
+                        android:layout_height="wrap_content" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/chk_request_credencial"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="false"
+                        app:thumbTint="@color/colorPrimary"
+                        app:trackTint="@color/grey_300" />
+
+                    <View
+                        android:layout_width="@dimen/spacing_middle"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/spacing_xlarge"/>
+
+                <!--boton crear solicitud-->
+                <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+                    android:id="@+id/xfbtn_crear_solicitud"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="25dp"
+                    android:layout_marginEnd="25dp"
+                    android:padding="15dp"
+                    android:text="Confirmar"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/white"
+                    app:backgroundTint="@color/blue_500"
+                    app:iconTint="@android:color/white" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/spacing_xlarge"/>
+
+                <TextView
+                    android:id="@+id/txt_info_tocancel"
+                    android:text="Haz solicitado la creación de una credencial"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/spacing_medium"/>
+                <!--boton cancelar solicitud-->
+                <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+                    android:id="@+id/xfbtn_cancelar_solicitud"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="25dp"
+                    android:layout_marginEnd="25dp"
+                    android:padding="15dp"
+                    android:text="Cancelar"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/white"
+                    app:backgroundTint="@color/red_500" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/spacing_xlarge"/>
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+    </LinearLayout>
+
+
+
+    <!--Loading container-->
+   <LinearLayout
+       android:id="@+id/dglyt_progress"
+       android:background="@color/overlay_dark_80"
+       android:gravity="center_horizontal|center_vertical"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:orientation="vertical">
+       <LinearLayout
+
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_gravity="center_vertical|center_horizontal"
+           android:layout_margin="@dimen/spacing_medium"
+           android:orientation="vertical">
+
+           <ProgressBar
+               android:indeterminate="true"
+               android:id="@+id/updateProgressBar"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:drawingCacheQuality="high"
+               android:indeterminateBehavior="repeat"
+               android:indeterminateDrawable="@drawable/custom_loading"
+               android:indeterminateDuration="2000"
+               />
+           <TextView
+               android:textColor="@color/grey_10"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="@dimen/spacing_large"
+               android:text="Procesando la solicitud" />
+       </LinearLayout>
+   </LinearLayout>
+    <!--Loading container-->
+
+
+</FrameLayout>

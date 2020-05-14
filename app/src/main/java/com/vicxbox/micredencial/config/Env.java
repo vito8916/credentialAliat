@@ -25,8 +25,10 @@ public class Env {
     //****
     public static final String LOCAL_STORED_DATA = "localdata_exist";
     public static final String LOCAL_CREDENTIAL_STATUS = "solicitud_fisica";
+    public static final String LOCAL_SOLICITUD_CREATED = "solicitud_fuecreada";
 
-    public static final String LOCAL_FOTO_PATH = "comple_path_photo";
+
+    public static final String LOCAL_FOTO_PATH = "complete_path_photo";
     public static final String LOCAL_FOTO_NAME = "complete_name_photo";
     /*json response*/
     public static final String LOCAL_jsonresponse_DATA = "jsonresponse";

@@ -7,6 +7,7 @@ import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -441,7 +442,7 @@ public class VerifyPhotoActivity extends AppCompatActivity implements NetworkSta
 
     @Override
     public void networkAvailable() {
-        no_internet_ly.setVisibility(View.GONE);
+       // no_internet_ly.setVisibility(View.GONE);
         lyt_progress.setVisibility(View.VISIBLE);
         try {
             verifyIfPhotoExist();
@@ -452,10 +453,32 @@ public class VerifyPhotoActivity extends AppCompatActivity implements NetworkSta
 
     @Override
     public void networkUnavailable() {
-        no_internet_ly.setVisibility(View.VISIBLE);
+        //no_internet_ly.setVisibility(View.VISIBLE);
         lytNotPhotoContainer.setVisibility(View.GONE);
         lytPhotoContainer.setVisibility(View.GONE);
         lyt_progress.setVisibility(View.GONE);
+
+        showAlertDialog();
+
+    }
+
+    private void showAlertDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("No tienes conexión a internet. Se utilizará la última credencial guardada.");
+        builder.setCancelable(false);
+        builder.setPositiveButton("Continuar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+               Intent credentialIntnent = new Intent(VerifyPhotoActivity.this, MyCredential.class);
+               startActivity(credentialIntnent);
+
+            }
+        });
+        builder.setNegativeButton(R.string.closeText, (dialog, which) -> {
+            finish();
+        });
+        builder.show();
     }
 
     public void startNetworkBroadcastReceiver(Context currentContext) {

@@ -25,13 +25,17 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
         <activity
-            android:name=".VerifyPhotoActivity">
+            android:name=".VerifyPhotoActivity"
+            android:screenOrientation="portrait">
         </activity>
-        <activity android:name=".MyCredential" />
+        <activity android:name=".MyCredential"
+            android:theme="@style/BaseThemeNo"
+            android:screenOrientation="portrait"/>
 
         <activity
             android:theme="@style/BaseThemeNo"
-            android:name=".MainActivity">
+            android:name=".MainActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
