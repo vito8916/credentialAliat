@@ -63,12 +63,15 @@ public class DialogSolicitudtFragment extends DialogFragment {
     public CallbackResult callbackResult;
     int banderitaTimer = 0;
 
+    Context context;
+
     ExtendedFloatingActionButton fabCrear, fabCancelar;
     CompoundButton chkSolicitar;
     View dglyt_progress;
     View ly_switcsolicitud;
     View dglyt_countdown;
     TextView txt_info_tocancel;
+    View parentView;
 
 
     public void setOnCallbackResult(final CallbackResult callbackResult) {
@@ -82,6 +85,8 @@ public class DialogSolicitudtFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         root_view = inflater.inflate(R.layout.dialog_payment, container, false);
+        context = root_view.getContext();
+        parentView = getActivity().findViewById(android.R.id.content);
 
         fabCrear = root_view.findViewById(R.id.xfbtn_crear_solicitud);
         fabCancelar = root_view.findViewById(R.id.xfbtn_cancelar_solicitud);
@@ -144,72 +149,12 @@ public class DialogSolicitudtFragment extends DialogFragment {
 
         verifyphisicalCredential();
 
-        if (getTimeDiff(fechaCreacionSolicitud) <= 5) {
+        if (getTimeDiff(fechaCreacionSolicitud) < 5) {
             int placeholderTime = 5 - getTimeDiff(fechaCreacionSolicitud);
             showCountDownDialod(placeholderTime);
         }
 
         return root_view;
-    }
-
-    private void showCountDownDialod(int placeholderTime) {
-
-        final Dialog dialog = new Dialog(getActivity());
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE); // before
-        dialog.setContentView(R.layout.dialog_wait);
-        dialog.setCancelable(false);
-
-        TextView countDownTime;
-        CountDownTimer timerDown;
-        countDownTime = dialog.findViewById(R.id.tx_count_down);
-
-        ((AppCompatButton) dialog.findViewById(R.id.bt_close)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-                onPaymentClick();
-            }
-        });
-
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(dialog.getWindow().getAttributes());
-        lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        dialog.show();
-        dialog.getWindow().setAttributes(lp);
-
-        new CountDownTimer(((placeholderTime)*60000), 1000) {
-            public void onTick(long millisUntilFinished) {
-                countDownTime.setText("Tiempo restante: " + millisUntilFinished / 1000);
-                int seconds = (int) (millisUntilFinished / 1000);
-                int minutes = seconds / 60;
-                seconds = seconds % 60;
-                countDownTime.setText("" + String.format("%02d", minutes)
-                        + ":" + String.format("%02d", seconds));
-                //here you can have your logic to set text to edittext
-            }
-            public void onFinish() {
-                dialog.dismiss();
-                onPaymentClick();
-            }
-
-        }.start();
-    }
-
-    private void sendOrCancelAlertDialog(String title, String msg, String flag) {
-        new AlertDialog.Builder(getActivity())
-                .setTitle(title)
-                .setMessage(msg)
-                .setPositiveButton("Si", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        sendOrCancelCredential(flag);
-                    }
-                })
-
-                // A null listener allows the button to dismiss the dialog and take no further action.
-                .setNegativeButton(android.R.string.no, null)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
     }
 
     private void onPaymentClick() {
@@ -282,7 +227,7 @@ public class DialogSolicitudtFragment extends DialogFragment {
 
                             switch (json.getString("solicitud")) {
                                 case "1":
-                                    Snackbar.make(Objects.requireNonNull(getView()), "Ya existe una solicitud creada.",
+                                    Snackbar.make(parentView, "Ya existe una solicitud creada.",
                                             Snackbar.LENGTH_LONG).show();
                                     chkSolicitar.setChecked(true);
                                     fabCrear.setEnabled(false);
@@ -316,7 +261,7 @@ public class DialogSolicitudtFragment extends DialogFragment {
 
                                 case "0":
                                     chkSolicitar.setChecked(false);
-                                    Snackbar.make(Objects.requireNonNull(getView()), "Aún no haz solicitado tu credencial",
+                                    Snackbar.make(parentView, "Aún no haz solicitado tu credencial",
                                             Snackbar.LENGTH_LONG).show();
 
                                     chkSolicitar.setChecked(false);
@@ -353,6 +298,98 @@ public class DialogSolicitudtFragment extends DialogFragment {
         });
     }
 
+
+    private void showCountDownDialod(int placeholderTime) {
+
+        final Dialog dialog = new Dialog(getActivity());
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE); // before
+        dialog.setContentView(R.layout.dialog_wait);
+        dialog.setCancelable(false);
+
+        TextView countDownTime;
+        CountDownTimer timerDown;
+        countDownTime = dialog.findViewById(R.id.tx_count_down);
+
+        ((AppCompatButton) dialog.findViewById(R.id.bt_close)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                onPaymentClick();
+            }
+        });
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        dialog.show();
+        dialog.getWindow().setAttributes(lp);
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+
+        try {
+            Date now = dateFormat.parse(sharedPreferences.getString(Env.LOCAL_SOLICITUD_CREATED, ""));
+            DateTime jjgg = new DateTime(now);
+
+            Date nowS = new Date();
+            DateTime jjj = new DateTime(nowS);
+
+            new CountDownTimer(
+                    ((5)*60000) - (Seconds.secondsBetween(jjgg, jjj).getSeconds()*1000),
+                    1000) {
+
+                public void onTick(long millisUntilFinished) {
+                    int seconds = (int) (millisUntilFinished / 1000);
+                    int minutes = seconds / 60;
+                    seconds = seconds % 60;
+                    countDownTime.setText("" + String.format("%02d", minutes)
+                            + ":" + String.format("%02d", seconds));
+                }
+
+                public void onFinish() {
+                    dialog.dismiss();
+
+                    Log.d("COUNTDOWN:::", "FINALIZADO");
+                }
+            }.start();
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        /*new CountDownTimer(((placeholderTime)*60000), 1000) {
+            public void onTick(long millisUntilFinished) {
+                countDownTime.setText("Tiempo restante: " + millisUntilFinished / 1000);
+                int seconds = (int) (millisUntilFinished / 1000);
+                int minutes = seconds / 60;
+                seconds = seconds % 60;
+                countDownTime.setText("" + String.format("%02d", minutes)
+                        + ":" + String.format("%02d", seconds));
+                //here you can have your logic to set text to edittext
+            }
+            public void onFinish() {
+                dialog.dismiss();
+                onPaymentClick();
+            }
+
+        }.start();*/
+    }
+
+    private void sendOrCancelAlertDialog(String title, String msg, String flag) {
+        new AlertDialog.Builder(getActivity())
+                .setTitle(title)
+                .setMessage(msg)
+                .setPositiveButton("Si", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        sendOrCancelCredential(flag);
+                    }
+                })
+
+                // A null listener allows the button to dismiss the dialog and take no further action.
+                .setNegativeButton(android.R.string.no, null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+    }
 
     /*enviar solicitud o cancelar una.
      * crearemos una funcion que sirva para ambos aspectos diferenciando por un flag que recibe cono parametro

@@ -415,7 +415,7 @@ public class MyCredential extends AppCompatActivity {
     /*Muestra la credencial digital con su data cargada desde un JSONObject guardodo en caché el
     * cual es obtenido el en request de getDataFromWebService()*/
     private void showCredential() {
-        ViewAnimation.fadeIn(lyt_progress);
+        //ViewAnimation.fadeIn(lyt_progress);
 
 
         try {

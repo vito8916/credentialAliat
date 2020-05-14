@@ -109,11 +109,7 @@ public class VerifyPhotoActivity extends AppCompatActivity implements NetworkSta
         sharedPreferences = getSharedPreferences(Env.SHARED_PREF_NAME,
                 Context.MODE_PRIVATE);
 
-        try {
-            verifyIfPhotoExist();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
 
 
         btnOpenCamera.setOnClickListener(new View.OnClickListener() {

@@ -93,7 +93,8 @@
                     android:minHeight="@dimen/spacing_xxlarge"
                     android:orientation="horizontal"
                     android:paddingLeft="25dp"
-                    android:paddingRight="25dp">
+                    android:paddingRight="25dp"
+                    android:visibility="gone">
 
                     <ImageButton
                         android:layout_width="@dimen/spacing_xmlarge"
@@ -149,7 +150,8 @@
                     android:textAlignment="center"
                     android:textColor="@android:color/white"
                     app:backgroundTint="@color/blue_500"
-                    app:iconTint="@android:color/white" />
+                    app:iconTint="@android:color/white"
+                    android:visibility="gone"/>
 
                 <Space
                     android:layout_width="match_parent"
@@ -174,7 +176,8 @@
                     android:text="Cancelar"
                     android:textAlignment="center"
                     android:textColor="@android:color/white"
-                    app:backgroundTint="@color/red_500" />
+                    app:backgroundTint="@color/red_500"
+                    android:visibility="gone"/>
 
                 <Space
                     android:layout_width="match_parent"
@@ -191,7 +194,7 @@
     <!--Loading container-->
    <LinearLayout
        android:id="@+id/dglyt_progress"
-       android:background="@color/overlay_dark_80"
+       android:background="@color/overlay_light_90"
        android:gravity="center_horizontal|center_vertical"
        android:layout_width="match_parent"
        android:layout_height="match_parent"
@@ -215,7 +218,7 @@
                android:indeterminateDuration="2000"
                />
            <TextView
-               android:textColor="@color/grey_10"
+               android:textColor="@color/blue_grey_600"
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
                android:layout_marginTop="@dimen/spacing_large"
