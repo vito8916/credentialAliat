@@ -1,4 +1,4 @@
-package com.vicxbox.micredencial.config;
+package com.vicxbox.micredencial.micredencial.config;
 
 import android.os.Environment;
 

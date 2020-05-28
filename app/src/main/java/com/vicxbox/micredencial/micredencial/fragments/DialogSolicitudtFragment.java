@@ -1,4 +1,4 @@
-package com.vicxbox.micredencial.fragments;
+package com.vicxbox.micredencial.micredencial.fragments;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -17,7 +17,6 @@ import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -25,14 +24,11 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.DialogFragment;
 
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
-import com.vicxbox.micredencial.MyCredential;
 import com.vicxbox.micredencial.R;
-import com.vicxbox.micredencial.config.Env;
+import com.vicxbox.micredencial.micredencial.config.Env;
 
 import org.joda.time.DateTime;
-import org.joda.time.Minutes;
 import org.joda.time.Seconds;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,7 +38,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -52,8 +47,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-
-import static android.content.Context.CONNECTIVITY_SERVICE;
 
 
 public class DialogSolicitudtFragment extends DialogFragment {
@@ -375,7 +368,12 @@ public class DialogSolicitudtFragment extends DialogFragment {
                 })
 
                 // A null listener allows the button to dismiss the dialog and take no further action.
-                .setNegativeButton(android.R.string.no, null)
+                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
     }

@@ -1,4 +1,4 @@
-package com.vicxbox.micredencial;
+package com.vicxbox.micredencial.micredencial;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -43,9 +43,11 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.github.dhaval2404.imagepicker.ImagePicker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
-import com.vicxbox.micredencial.config.Env;
-import com.vicxbox.micredencial.fragments.DialogSolicitudtFragment;
-import com.vicxbox.micredencial.utils.ViewAnimation;
+import com.vicxbox.micredencial.MainActivity;
+import com.vicxbox.micredencial.R;
+import com.vicxbox.micredencial.micredencial.config.Env;
+import com.vicxbox.micredencial.micredencial.fragments.DialogSolicitudtFragment;
+import com.vicxbox.micredencial.micredencial.utils.ViewAnimation;
 
 import org.json.JSONException;
 import org.json.JSONObject;

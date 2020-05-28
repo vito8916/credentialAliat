@@ -25,10 +25,10 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
         <activity
-            android:name=".VerifyPhotoActivity"
+            android:name=".micredencial.VerifyPhotoActivity"
             android:screenOrientation="portrait">
         </activity>
-        <activity android:name=".MyCredential"
+        <activity android:name=".micredencial.MyCredential"
             android:theme="@style/BaseThemeNo"
             android:screenOrientation="portrait"/>
 

@@ -1,4 +1,4 @@
-package com.vicxbox.micredencial.utils;
+package com.vicxbox.micredencial.micredencial.utils;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;

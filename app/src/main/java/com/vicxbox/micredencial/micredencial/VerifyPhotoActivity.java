@@ -1,4 +1,4 @@
-package com.vicxbox.micredencial;
+package com.vicxbox.micredencial.micredencial;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -22,7 +22,6 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -31,13 +30,12 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.github.dhaval2404.imagepicker.ImagePicker;
 import com.google.android.material.snackbar.Snackbar;
-import com.vicxbox.micredencial.config.Env;
-import com.vicxbox.micredencial.utils.DialogNetworkChecker;
-import com.vicxbox.micredencial.utils.NetworkStateReceiver;
-import com.vicxbox.micredencial.utils.Utils;
-import com.vicxbox.micredencial.utils.ViewAnimation;
+import com.vicxbox.micredencial.MainActivity;
+import com.vicxbox.micredencial.R;
+import com.vicxbox.micredencial.micredencial.config.Env;
+import com.vicxbox.micredencial.micredencial.utils.NetworkStateReceiver;
+import com.vicxbox.micredencial.micredencial.utils.ViewAnimation;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -54,7 +52,6 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.MediaType;
-import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -130,7 +127,7 @@ public class VerifyPhotoActivity extends AppCompatActivity implements NetworkSta
             @Override
             public void onClick(View v) {
                 Snackbar.make(parent_view, R.string.sendPhotoToServerMsg, Snackbar.LENGTH_SHORT).show();
-                Utils utils = new Utils();
+               // Utils utils = new Utils();
 
                 String absolutePath = sharedPreferences.getString(Env.LOCAL_FOTO_PATH, "Not Available");
                 String namePhoto = sharedPreferences.getString(Env.LOCAL_FOTO_NAME, "Not Available");
